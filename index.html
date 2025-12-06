@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Toggle Lampu — Klik untuk On/Off</title>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --card:#0b1220;
+      --accent:#f59e0b; /* warna lampu menyala */
+      --muted:#94a3b8;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;background:linear-gradient(180deg,#071029 0%, #08122a 100%);color:#e6eef8;display:flex;align-items:center;justify-content:center;height:100vh}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:28px;max-width:420px;width:92%;box-shadow:0 10px 30px rgba(2,6,23,0.6);text-align:center}
+    h1{margin:0 0 10px;font-size:20px}
+    p{color:var(--muted);margin:0 0 18px}
+
+    /* area lampu */
+    .lamp-area{display:flex;flex-direction:column;align-items:center;gap:18px}
+    .bulb-wrapper{width:170px;height:210px;display:flex;align-items:flex-start;justify-content:center;position:relative;cursor:pointer}
+    .bulb{width:120px;height:140px;border-radius:60% 60% 45% 45% / 60% 60% 35% 35%;background:radial-gradient(circle at 35% 25%, rgba(255,255,255,0.95), rgba(255,255,255,0.7) 6%, rgba(255,255,255,0.3) 9%, rgba(255,255,255,0.05) 12%, rgba(255,255,255,0) 30%), linear-gradient(180deg,#f3f4f6, #e6eef8);box-shadow:0 8px 20px rgba(2,6,23,0.4);position:relative;transition:filter .25s ease, transform .18s ease}
+    .bulb::after{content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:-22px;width:46px;height:34px;border-radius:6px;background:linear-gradient(180deg,#9aa6b7,#6b7280);box-shadow:inset 0 -2px 4px rgba(0,0,0,0.25)}
+    .lamp-on .bulb{filter:drop-shadow(0 6px 20px rgba(245,158,11,0.35)) saturate(1.1);transform:translateY(-2px)}
+
+    /* sinar lampu */
+    .glow{position:absolute;left:50%;transform:translateX(-50%);top:10px;width:300px;height:300px;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .3s ease}
+    .lamp-on .glow{opacity:1;background:radial-gradient(circle at 50% 30%, rgba(245,158,11,0.32), rgba(245,158,11,0.12) 20%, rgba(245,158,11,0.04) 40%, transparent 60%)}
+
+    /* tombol */
+    .switch{display:inline-flex;align-items:center;gap:12px;margin-top:6px}
+    .btn{background:#07132a;border:1px solid rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;color:var(--muted);cursor:pointer;transition:all .15s ease}
+    .btn:active{transform:translateY(1px)}
+    .indicator{width:50px;height:28px;border-radius:14px;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;padding:4px;position:relative}
+    .knob{width:20px;height:20px;border-radius:50%;background:#fff;transform:translateX(0);transition:transform .18s cubic-bezier(.2,.9,.2,1)}
+    .lamp-on .knob{transform:translateX(22px);background:var(--accent)}
+
+    footer{font-size:12px;color:var(--muted);margin-top:14px}
+    a{color:inherit;text-decoration:underline}
+
+    @media (max-width:420px){.bulb-wrapper{width:140px;height:185px}.bulb{width:100px;height:120px}}
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <h1>Toggle Lampu (klik untuk hidup/mati)</h1>
+    <p>Klik gambar lampu atau tombol untuk menyalakan / mematikan lampu. Juga bisa pakai tombol keyboard <kbd>Space</kbd>.</p>
+
+    <div class="lamp-area" id="lampArea">
+      <div class="bulb-wrapper" id="bulbWrapper" tabindex="0" aria-pressed="false" role="button" aria-label="Lampu Mati">
+        <div class="glow" id="glow"></div>
+        <div class="bulb" id="bulb"></div>
+      </div>
+
+      <div class="switch">
+        <button class="btn" id="toggleBtn">Toggle</button>
+        <div class="indicator" id="indicator" aria-hidden="true">
+          <div class="knob" id="knob"></div>
+        </div>
+      </div>
+
+      <footer id="statusText">Status: <strong id="status">Mati</strong></footer>
+    </div>
+  </main>
+
+  <script>
+    // Elemen
+    const bulbWrapper = document.getElementById('bulbWrapper');
+    const card = document.querySelector('.card');
+    const statusText = document.getElementById('status');
+    const indicator = document.getElementById('indicator');
+
+    // State lampu
+    let isOn = false;
+
+    function updateUI(){
+      if(isOn){
+        card.classList.add('lamp-on');
+        bulbWrapper.setAttribute('aria-pressed','true');
+        bulbWrapper.setAttribute('aria-label','Lampu Menyala');
+        statusText.textContent = 'Hidup';
+      } else {
+        card.classList.remove('lamp-on');
+        bulbWrapper.setAttribute('aria-pressed','false');
+        bulbWrapper.setAttribute('aria-label','Lampu Mati');
+        statusText.textContent = 'Mati';
+      }
+    }
+
+    function toggleLamp(){
+      isOn = !isOn;
+      updateUI();
+    }
+
+    // Event: klik pada gambar lampu atau tombol
+    bulbWrapper.addEventListener('click', toggleLamp);
+    document.getElementById('toggleBtn').addEventListener('click', toggleLamp);
+
+    // keyboard: spasi atau enter saat fokus pada wrapper
+    bulbWrapper.addEventListener('keydown', (e) => {
+      if(e.code === 'Space' || e.code === 'Enter'){
+        e.preventDefault();
+        toggleLamp();
+      }
+    });
+
+    // Inisialisasi
+    updateUI();
+
+  </script>
+</body>
+</html>
